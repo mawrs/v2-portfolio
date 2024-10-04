@@ -8,7 +8,7 @@ import { Github, Linkedin, Twitter, Send, Sun, Moon } from 'lucide-react'
 export function PortfolioComponent() {
   const { colorMode, toggleColorMode } = useColorMode()
   const [chatMessages, setChatMessages] = useState([
-    { role: 'assistant', content: "Hi! I'm Jane's AI assistant. How can I help you with design questions?" }
+    { role: 'assistant', content: "Hi! I am Jane's AI assistant. How can I help you with design questions?" }
   ])
   const [userInput, setUserInput] = useState('')
 
@@ -187,7 +187,7 @@ export function PortfolioComponent() {
 
         {/* AI Chatbot */}
         <Box as="section" py={12}>
-          <Heading as="h2" size="xl" mb={8}>Chat with Jane's AI Assistant</Heading>
+          <Heading as="h2" size="xl" mb={8}>Chat with Martin AI</Heading>
           <Card bg={colorMode === 'light' ? 'white' : 'gray.700'}>
             <CardBody>
               <VStack spacing={4} mb={4} height="300px" overflowY="auto">
