@@ -94,12 +94,12 @@ export function PortfolioComponent() {
             <Box maxW="xl">
               <Heading as="h2" size="xl" mb={4}>About Me</Heading>
               <Text mb={4}>
-                Hi, I'm Martin Tejeda, a passionate product designer with over 5 years of experience in creating
+                Hi, I am Martin Tejeda, a passionate product designer with over 5 years of experience in creating
                 user-centered digital products. I specialize in UX research, UI design, and usability testing.
               </Text>
               <Text>
                 My goal is to create intuitive and beautiful interfaces that solve real problems for users.
-                I'm constantly learning and adapting to new technologies and design trends to deliver the best
+                I am constantly learning and adapting to new technologies and design trends to deliver the best
                 possible solutions.
               </Text>
             </Box>
