@@ -39,10 +39,10 @@ export function PortfolioComponent() {
 
   const generateJaneResponse = () => {
     const responses = [
-      "That is an interesting design challenge. I would approach it by first conducting user research to understand the core needs.",
+      "That is an interesting design challenge. I will approach it by first conducting user research to understand the core needs.",
       "In my experience, the key to solving that kind of problem is to focus on user-centered design principles.",
       "I have worked on similar projects before. The most important thing is to iterate quickly and gather user feedback.",
-      "That's a great question! I would start by creating low-fidelity wireframes to explore different solutions.",
+      "That is a great question! I will start by creating low-fidelity wireframes to explore different solutions.",
       "When dealing with complex UX problems, I find it helpful to break them down into smaller, manageable components.",
     ]
     return responses[Math.floor(Math.random() * responses.length)]
