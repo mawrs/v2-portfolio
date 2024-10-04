@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, SimpleGrid, Card, CardBody, CardFooter, Stack, Input, useColorMode, IconButton } from "@chakra-ui/react"
+import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, Input, useColorMode, IconButton } from "@chakra-ui/react"
 import { Github, Linkedin, Twitter, Send, Sun, Moon } from 'lucide-react'
 
 export function PortfolioComponent() {
   const { colorMode, toggleColorMode } = useColorMode()
-  const [activeProject, setActiveProject] = useState(0)
   const [chatMessages, setChatMessages] = useState([
     { role: 'assistant', content: "Hi! I'm Jane's AI assistant. How can I help you with design questions?" }
   ])
@@ -32,20 +31,18 @@ export function PortfolioComponent() {
     const newMessages = [
       ...chatMessages,
       { role: 'user', content: userInput },
-      { role: 'assistant', content: `As Jane, I would say: "${generateJaneResponse(userInput)}"` }
+      { role: 'assistant', content: `As Jane, I would say: "${generateJaneResponse()}"` }
     ]
     setChatMessages(newMessages)
     setUserInput('')
   }
 
-  const generateJaneResponse = (input: string) => {
-    // This is a simple mock-up of how Jane might respond. In a real application,
-    // you'd want to use a more sophisticated AI model or a predefined set of responses.
+  const generateJaneResponse = () => {
     const responses = [
-      "That's an interesting design challenge. I'd approach it by first conducting user research to understand the core needs.",
+      "That is an interesting design challenge. I would approach it by first conducting user research to understand the core needs.",
       "In my experience, the key to solving that kind of problem is to focus on user-centered design principles.",
-      "I've worked on similar projects before. The most important thing is to iterate quickly and gather user feedback.",
-      "That's a great question! I'd start by creating low-fidelity wireframes to explore different solutions.",
+      "I have worked on similar projects before. The most important thing is to iterate quickly and gather user feedback.",
+      "That's a great question! I would start by creating low-fidelity wireframes to explore different solutions.",
       "When dealing with complex UX problems, I find it helpful to break them down into smaller, manageable components.",
     ]
     return responses[Math.floor(Math.random() * responses.length)]
@@ -127,7 +124,6 @@ export function PortfolioComponent() {
                       overflow='hidden'
                       variant='outline'
                       w="full"
-                      bg={colorMode === 'light' ? 'white' : 'gray.700'}
                     >
                       <Image
                         objectFit='cover'
@@ -143,7 +139,7 @@ export function PortfolioComponent() {
                           </Text>
                         </CardBody>
                         <CardFooter>
-                          <Button variant='solid' colorScheme='blue' onClick={() => setActiveProject(index)}>
+                          <Button variant='solid' colorScheme='blue'>
                             View Details
                           </Button>
                         </CardFooter>
@@ -161,7 +157,6 @@ export function PortfolioComponent() {
                       overflow='hidden'
                       variant='outline'
                       w="full"
-                      bg={colorMode === 'light' ? 'white' : 'gray.700'}
                     >
                       <Image
                         objectFit='cover'
@@ -176,6 +171,11 @@ export function PortfolioComponent() {
                             {project.description}
                           </Text>
                         </CardBody>
+                        <CardFooter>
+                          <Button variant='solid' colorScheme='blue'>
+                            Learn More
+                          </Button>
+                        </CardFooter>
                       </Stack>
                     </Card>
                   ))}
