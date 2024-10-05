@@ -8,7 +8,20 @@ import { SocialIcon } from 'react-social-icons'
 interface ProjectType {
   title: string;
   description: string;
-  }
+  image: string;
+  url?: string; // Add this for side projects
+  expanded?: {
+    role: string;
+    team: string;
+    challenges: string;
+    outcome: string;
+  };
+}
+
+interface CustomSocialIconProps {
+  url: string;
+  network: string;
+}
 
 export function PortfolioComponent() {
   const { colorMode, toggleColorMode } = useColorMode()
@@ -22,7 +35,7 @@ export function PortfolioComponent() {
   // Add a new state for artificial delay
   const [artificialDelay, setArtificialDelay] = useState(false)
 
-  const featuredProjects = [
+  const featuredProjects: ProjectType[] = [
     {
       title: "Facebook Project",
       description: "Enhancing user connections on Facebook",
@@ -58,7 +71,7 @@ export function PortfolioComponent() {
     },
   ]
 
-  const sideProjects = [
+  const sideProjects: ProjectType[] = [
     { title: "Prepitch", description: "Personal project for pitch preparation", image: "/prepitch.png", url: "https://prepitch.example.com" },
     { title: "New Careers", description: "Mobile app design for career transitions", image: "/newcareers.png", url: "https://newcareers.example.com" },
     { title: "Audio Nexus", description: "Web app design for audio enthusiasts", image: "/audionexus.png", url: "https://audionexus.example.com" },
@@ -112,7 +125,7 @@ export function PortfolioComponent() {
     }
   }
 
-  const renderProjectCard = (project: ProjectType, index: number, projectType: string) => (
+  const renderProjectCard = (project: ProjectType, index: number, projectType: 'featured' | 'side') => (
     <Card
       key={index}
       direction={{ base: 'column', sm: 'row' }}
@@ -169,7 +182,7 @@ export function PortfolioComponent() {
     </Card>
   )
 
-  const CustomSocialIcon = ({ url, network }) => {
+  const CustomSocialIcon: React.FC<CustomSocialIconProps> = ({ url, network }) => {
     const { colorMode } = useColorMode()
 
     return (
@@ -181,8 +194,8 @@ export function PortfolioComponent() {
         <SocialIcon
           url={url}
           network={network}
-          bgColor={colorMode === ''}
-          fgColor={colorMode === ''}
+          bgColor={colorMode === 'light' ? undefined : 'white'}
+          fgColor={colorMode === 'light' ? undefined : 'black'}
           style={{ width: 40, height: 40 }}
         />
       </Box>
