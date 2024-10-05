@@ -1,51 +1,187 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, Input, useColorMode, IconButton, Badge } from "@chakra-ui/react"
-import { Github, Linkedin, Twitter, Send, Sun, Moon } from 'lucide-react'
+import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, Input, useColorMode, IconButton, Badge, Skeleton, Link } from "@chakra-ui/react"
+import { Send, Sun, Moon, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { SocialIcon } from 'react-social-icons'
 
 export function PortfolioComponent() {
   const { colorMode, toggleColorMode } = useColorMode()
   const [chatMessages, setChatMessages] = useState([
-    { role: 'assistant', content: "Hi! I am Jane's AI assistant. How can I help you with design questions?" }
+    { role: 'assistant', content: "Hi! I am Martin's AI assistant. How can I help you with design questions?" }
   ])
   const [userInput, setUserInput] = useState('')
+  const [expandedProject, setExpandedProject] = useState<number | null>(null)
+  const [isThinking, setIsThinking] = useState(false)
+
+  // Add a new state for artificial delay
+  const [artificialDelay, setArtificialDelay] = useState(false)
 
   const featuredProjects = [
-    { title: "Facebook Project", description: "UX/UI design for a social media platform", image: "/facebook.png" },
-    { title: "Square Project", description: "Product design for a payment system", image: "/square.png" },
-    { title: "Slide Project", description: "Redesign of a presentation software", image: "/slide.png" },
+    {
+      title: "Facebook Project",
+      description: "Enhancing user connections on Facebook",
+      image: "/facebook.png",
+      expanded: {
+        role: "Product Designer",
+        team: "Collaborated with UX Researchers, Product Managers, and a Product Design Manager",
+        challenges: "Balancing design exploration with existing Facebook Design System components, understanding previous efforts, and managing complex multi-user systems",
+        outcome: "Increased engagement between public figures and audiences by 15%, and saw a 25% increase in comments and reactions from designated top fans"
+      }
+    },
+    {
+      title: "Square Project",
+      description: "Enhancing email security through design standardization",
+      image: "/square.png",
+      expanded: {
+        role: "Product Designer",
+        team: "Collaborated with UX Writers, Product Designers, UX Researchers, and a Product Design Manager",
+        challenges: "Addressing inconsistent email designs across seven departments, balancing diverse communication needs, and improving seller identification of legitimate Square emails",
+        outcome: "Achieved a 12.5% decrease in reported phishing attempts, 70% reduction in financial losses due to email scams, and 90% increase in seller confidence in identifying legitimate Square emails"
+      }
+    },
+    {
+      title: "Slide Project",
+      description: "Transforming Slide's claim process",
+      image: "/slide.png",
+      expanded: {
+        role: "Lead Designer",
+        team: "Collaborated with cross-functional teams including UX researchers, product managers, developers, and stakeholders",
+        challenges: "Creating a unified and intuitive File a Claim process for new and existing users, simplifying complex insurance information, and developing a scalable design system",
+        outcome: "Achieved 89% onboarding completion rate, reduced average onboarding time from 20 to 8 minutes, increased NPS from 32 to 58, and decreased customer support calls by 45%"
+      }
+    },
   ]
 
   const sideProjects = [
-    { title: "Prepitch", description: "Personal project for pitch preparation", image: "/prepitch.png" },
-    { title: "New Careers", description: "Mobile app design for career transitions", image: "/newcareers.png" },
-    { title: "Audio Nexus", description: "Web app design for audio enthusiasts", image: "/audionexus.png" },
+    { title: "Prepitch", description: "Personal project for pitch preparation", image: "/prepitch.png", url: "https://prepitch.example.com" },
+    { title: "New Careers", description: "Mobile app design for career transitions", image: "/newcareers.png", url: "https://newcareers.example.com" },
+    { title: "Audio Nexus", description: "Web app design for audio enthusiasts", image: "/audionexus.png", url: "https://audionexus.example.com" },
   ]
 
-  const handleChatSubmit = (e: React.FormEvent) => {
+  const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (userInput.trim() === '') return
 
     const newMessages = [
       ...chatMessages,
-      { role: 'user', content: userInput },
-      { role: 'assistant', content: `As Jane, I would say: "${generateJaneResponse()}"` }
+      { role: 'user', content: userInput }
     ]
     setChatMessages(newMessages)
     setUserInput('')
+    setIsThinking(true)
+
+    try {
+      const startTime = Date.now();
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: userInput }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Calculate a random delay between 500ms and 1500ms
+      const randomDelay = Math.floor(Math.random() * (1500 - 500 + 1)) + 500;
+      const elapsedTime = Date.now() - startTime;
+      
+      if (elapsedTime < randomDelay) {
+        setArtificialDelay(true)
+        await new Promise(resolve => setTimeout(resolve, randomDelay - elapsedTime))
+        setArtificialDelay(false)
+      }
+
+      setChatMessages([...newMessages, { role: 'assistant', content: data.response }]);
+    } catch (error) {
+      console.error('Error querying AI:', error);
+      setChatMessages([...newMessages, { role: 'assistant', content: "I'm sorry, I couldn't process your request at the moment. Can you please try again?" }]);
+    } finally {
+      setIsThinking(false)
+    }
   }
 
-  const generateJaneResponse = () => {
-    const responses = [
-      "That is an interesting design challenge. I will approach it by first conducting user research to understand the core needs.",
-      "In my experience, the key to solving that kind of problem is to focus on user-centered design principles.",
-      "I have worked on similar projects before. The most important thing is to iterate quickly and gather user feedback.",
-      "That is a great question! I will start by creating low-fidelity wireframes to explore different solutions.",
-      "When dealing with complex UX problems, I find it helpful to break them down into smaller, manageable components.",
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
+  const renderProjectCard = (project, index, projectType) => (
+    <Card
+      key={index}
+      direction={{ base: 'column', sm: 'row' }}
+      overflow='hidden'
+      variant='outline'
+      w="full"
+    >
+      <Image
+        objectFit='cover'
+        maxW={{ base: '100%', sm: '200px' }}
+        src={project.image}
+        alt={project.title}
+      />
+      <Stack w="full">
+        <CardBody>
+          <Heading size='md'>{project.title}</Heading>
+          <Text py='2'>
+            {project.description}
+          </Text>
+          {projectType === 'featured' && expandedProject === index && project.expanded && (
+            <Box mt={4}>
+              <Text><strong>Role:</strong> {project.expanded.role}</Text>
+              <Text><strong>Team:</strong> {project.expanded.team}</Text>
+              <Text><strong>Challenges:</strong> {project.expanded.challenges}</Text>
+              <Text><strong>Outcome:</strong> {project.expanded.outcome}</Text>
+            </Box>
+          )}
+        </CardBody>
+        <CardFooter>
+          {projectType === 'featured' ? (
+            <Button
+              onClick={() => setExpandedProject(expandedProject === index ? null : index)}
+              variant='ghost'
+              colorScheme='blue'
+              rightIcon={expandedProject === index ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            >
+              {expandedProject === index ? 'Less' : 'More'}
+            </Button>
+          ) : (
+            <Button
+              as={Link}
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant='ghost'
+              colorScheme='blue'
+              rightIcon={<ExternalLink size={16} />}
+            >
+              View Project
+            </Button>
+          )}
+        </CardFooter>
+      </Stack>
+    </Card>
+  )
+
+  const CustomSocialIcon = ({ url, network }) => {
+    const { colorMode } = useColorMode()
+
+    return (
+      <Box
+        opacity={0.7}
+        transition="opacity 0.2s"
+        _hover={{ opacity: 1 }}
+      >
+        <SocialIcon
+          url={url}
+          network={network}
+          bgColor={colorMode === ''}
+          fgColor={colorMode === ''}
+          style={{ width: 40, height: 40 }}
+        />
+      </Box>
+    )
   }
 
   return (
@@ -61,10 +197,7 @@ export function PortfolioComponent() {
                 href="/resume.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                colorScheme={colorMode === 'light' ? 'blue' : 'teal'}
-                _hover={{
-                  bg: colorMode === 'light' ? 'blue.600' : 'teal.600',
-                }}
+                colorScheme="blue"
               >
                 Resume
               </Button>
@@ -73,7 +206,7 @@ export function PortfolioComponent() {
                 icon={colorMode === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                 onClick={toggleColorMode}
                 variant="outline"
-                colorScheme={colorMode === 'light' ? 'blue' : 'teal'}
+                colorScheme={colorMode === 'light' ? 'blue' : 'gray'}
               />
             </Flex>
           </Flex>
@@ -128,68 +261,12 @@ export function PortfolioComponent() {
             <TabPanels>
               <TabPanel>
                 <VStack spacing={8}>
-                  {featuredProjects.map((project, index) => (
-                    <Card
-                      key={index}
-                      direction={{ base: 'column', sm: 'row' }}
-                      overflow='hidden'
-                      variant='outline'
-                      w="full"
-                    >
-                      <Image
-                        objectFit='cover'
-                        maxW={{ base: '100%', sm: '200px' }}
-                        src={project.image}
-                        alt={project.title}
-                      />
-                      <Stack>
-                        <CardBody>
-                          <Heading size='md'>{project.title}</Heading>
-                          <Text py='2'>
-                            {project.description}
-                          </Text>
-                        </CardBody>
-                        <CardFooter>
-                          <Button variant='solid' colorScheme='blue'>
-                            View Details
-                          </Button>
-                        </CardFooter>
-                      </Stack>
-                    </Card>
-                  ))}
+                  {featuredProjects.map((project, index) => renderProjectCard(project, index, 'featured'))}
                 </VStack>
               </TabPanel>
               <TabPanel>
                 <VStack spacing={8}>
-                  {sideProjects.map((project, index) => (
-                    <Card
-                      key={index}
-                      direction={{ base: 'column', sm: 'row' }}
-                      overflow='hidden'
-                      variant='outline'
-                      w="full"
-                    >
-                      <Image
-                        objectFit='cover'
-                        maxW={{ base: '100%', sm: '200px' }}
-                        src={project.image}
-                        alt={project.title}
-                      />
-                      <Stack>
-                        <CardBody>
-                          <Heading size='md'>{project.title}</Heading>
-                          <Text py='2'>
-                            {project.description}
-                          </Text>
-                        </CardBody>
-                        <CardFooter>
-                          <Button variant='solid' colorScheme='blue'>
-                            Learn More
-                          </Button>
-                        </CardFooter>
-                      </Stack>
-                    </Card>
-                  ))}
+                  {sideProjects.map((project, index) => renderProjectCard(project, index, 'side'))}
                 </VStack>
               </TabPanel>
             </TabPanels>
@@ -215,6 +292,21 @@ export function PortfolioComponent() {
                     </Box>
                   </Flex>
                 ))}
+                {(isThinking || artificialDelay) && (
+                  <Flex justify="flex-start" width="100%">
+                    <Skeleton 
+                      startColor={colorMode === 'light' ? 'gray.100' : 'gray.600'}
+                      endColor={colorMode === 'light' ? 'gray.400' : 'gray.300'}
+                      height="20px"
+                      width="70%"
+                      borderRadius="lg"
+                    >
+                      <Box p={3}>
+                        <Text>Thinking...</Text>
+                      </Box>
+                    </Skeleton>
+                  </Flex>
+                )}
               </VStack>
               <form onSubmit={handleChatSubmit}>
                 <Flex gap={2}>
@@ -225,7 +317,7 @@ export function PortfolioComponent() {
                     onChange={(e) => setUserInput(e.target.value)}
                     bg={colorMode === 'light' ? 'white' : 'gray.700'}
                   />
-                  <Button type="submit" leftIcon={<Send size={16} />}>
+                  <Button type="submit" leftIcon={<Send size={16} />} isLoading={isThinking || artificialDelay}>
                     Send
                   </Button>
                 </Flex>
@@ -238,20 +330,18 @@ export function PortfolioComponent() {
         <Box as="footer" py={8} bg={colorMode === 'light' ? 'gray.100' : 'gray.800'}>
           <Container maxW="container.xl">
             <Flex justify="center" gap={6} mb={4}>
-              <Link href="https://github.com/janedoe" target="_blank" rel="noopener noreferrer">
-                <Github size={24} />
-                <span className="sr-only">GitHub</span>
-              </Link>
-              <Link href="https://linkedin.com/in/janedoe" target="_blank" rel="noopener noreferrer">
-                <Linkedin size={24} />
-                <span className="sr-only">LinkedIn</span>
-              </Link>
-              <Link href="https://twitter.com/janedoe" target="_blank" rel="noopener noreferrer">
-                <Twitter size={24} />
-                <span className="sr-only">Twitter</span>
-              </Link>
+              <CustomSocialIcon url="mailto:your.email@example.com" network="email" />
+              <CustomSocialIcon url="https://linkedin.com/in/yourusername" network="linkedin" />
+              <CustomSocialIcon url="https://twitter.com/yourusername" network="twitter" />
+              <CustomSocialIcon url="https://github.com/yourusername" network="github" />
             </Flex>
-            <Text textAlign="center">&copy; 2024 Martin Tejeda. All rights reserved.</Text>
+            <VStack spacing={1} textAlign="center">
+              <Text>&copy; 2024 Martin Tejeda</Text>
+              <Text>
+                Made with <Link href="https://v0.dev/chat" isExternal>V0</Link> + <Link href="https://www.cursor.com/" isExternal>Cursor</Link>. 
+                Styled with <Link href="https://v2.chakra-ui.com/" isExternal>Chakra UI</Link>.
+              </Text>
+            </VStack>
           </Container>
         </Box>
       </Container>
