@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, Input, useColorMode, IconButton } from "@chakra-ui/react"
+import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, Input, useColorMode, IconButton, Badge } from "@chakra-ui/react"
 import { Github, Linkedin, Twitter, Send, Sun, Moon } from 'lucide-react'
 
 export function PortfolioComponent() {
@@ -83,15 +83,26 @@ export function PortfolioComponent() {
       <Container as="main" maxW="container.xl" py={8}>
         {/* About Me */}
         <VStack as="section" spacing={12} align="stretch" py={12}>
-          <Flex direction={["column", "row"]} align="center" gap={8}>
-            <Image
-              src="/headshot.png"
-              alt="Martin Tejeda"
-              borderRadius="full"
-              boxSize="256px"
-              objectFit="cover"
-            />
-            <Box maxW="xl">
+          <Flex direction={["column", "row"]} align="stretch" gap={8}>
+            <Box width={["100%", "50%"]}>
+              <Box borderRadius="md" overflow="hidden">
+                <iframe
+                  width="100%"
+                  height="300px"
+                  src="https://www.youtube.com/embed/Eim7-Pb2eVg"
+                  title="Portfolio Creation Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </Box>
+              <Flex justify="center" mt={2}>
+                <Badge colorScheme="purple" fontSize="sm" p={2}>
+                  Watch how I made this portfolio with AI!
+                </Badge>
+              </Flex>
+            </Box>
+            <Box width={["100%", "50%"]}>
               <Heading as="h2" size="xl" mb={4}>About Me</Heading>
               <Text mb={4}>
                 Hi, I am Martin Tejeda, a passionate product designer with over 5 years of experience in creating
