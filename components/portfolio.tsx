@@ -5,6 +5,11 @@ import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabLi
 import { Send, Sun, Moon, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import { SocialIcon } from 'react-social-icons'
 
+interface ProjectType {
+  title: string;
+  description: string;
+  }
+
 export function PortfolioComponent() {
   const { colorMode, toggleColorMode } = useColorMode()
   const [chatMessages, setChatMessages] = useState([
@@ -107,7 +112,7 @@ export function PortfolioComponent() {
     }
   }
 
-  const renderProjectCard = (project, index, projectType) => (
+  const renderProjectCard = (project: ProjectType, index: number, projectType: string) => (
     <Card
       key={index}
       direction={{ base: 'column', sm: 'row' }}
