@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState} from 'react'
 import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, Input, useColorMode, IconButton, Badge, Skeleton, Link } from "@chakra-ui/react"
 import { Send, Sun, Moon, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import { SocialIcon } from 'react-social-icons'
