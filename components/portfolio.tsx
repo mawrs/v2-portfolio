@@ -222,7 +222,7 @@ export function PortfolioComponent() {
     )
   }
 
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  // const [setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
