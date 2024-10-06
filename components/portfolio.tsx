@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, Input, useColorMode, IconButton, Badge, Skeleton, Link } from "@chakra-ui/react"
 import { Send, Sun, Moon, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import { SocialIcon } from 'react-social-icons'
@@ -9,7 +9,7 @@ interface ProjectType {
   title: string;
   description: string;
   image: string;
-  url?: string; // Add this for side projects
+  url?: string;
   expanded?: {
     role: string;
     team: string;
@@ -73,8 +73,8 @@ export function PortfolioComponent() {
 
   const sideProjects: ProjectType[] = [
     { title: "Prepitch", description: "Personal project for pitch preparation", image: "/prepitch.png", url: "https://prepitch.example.com" },
-    { title: "New Careers", description: "Mobile app design for career transitions", image: "/newcareers.png", url: "https://newcareers.example.com" },
-    { title: "Audio Nexus", description: "Web app design for audio enthusiasts", image: "/audionexus.png", url: "https://audionexus.example.com" },
+    { title: "New Careers", description: "Mobile app design for career transitions", image: "/newcareers.png", url: "https://newcareers.fyi" },
+    { title: "Audio Nexus", description: "Web app design for audio enthusiasts", image: "/audionexus.png", url: "https://audionexus.ai" },
   ]
 
   const handleChatSubmit = async (e: React.FormEvent) => {
@@ -155,28 +155,31 @@ export function PortfolioComponent() {
           )}
         </CardBody>
         <CardFooter>
-          {projectType === 'featured' ? (
-            <Button
-              onClick={() => setExpandedProject(expandedProject === index ? null : index)}
-              variant='ghost'
-              colorScheme='blue'
-              rightIcon={expandedProject === index ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            >
-              {expandedProject === index ? 'Less' : 'More'}
-            </Button>
-          ) : (
-            <Button
-              as={Link}
-              href={project.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant='ghost'
-              colorScheme='blue'
-              rightIcon={<ExternalLink size={16} />}
-            >
-              View Project
-            </Button>
-          )}
+          <Button
+            onClick={projectType === 'featured' 
+              ? () => setExpandedProject(expandedProject === index ? null : index)
+              : undefined}
+            as={projectType === 'side' ? Link : undefined}
+            href={projectType === 'side' ? project.url : undefined}
+            target={projectType === 'side' ? "_blank" : undefined}
+            rel={projectType === 'side' ? "noopener noreferrer" : undefined}
+            variant='ghost'
+            colorScheme='blue'
+            rightIcon={projectType === 'featured' 
+              ? (expandedProject === index ? <ChevronUp size={16} /> : <ChevronDown size={16} />)
+              : <ExternalLink size={16} />
+            }
+            sx={{
+              '&:hover': {
+                textDecoration: 'none',
+              }
+            }}
+          >
+            {projectType === 'featured' 
+              ? (expandedProject === index ? 'Less' : 'More')
+              : 'View Project'
+            }
+          </Button>
         </CardFooter>
       </Stack>
     </Card>
@@ -184,6 +187,21 @@ export function PortfolioComponent() {
 
   const CustomSocialIcon: React.FC<CustomSocialIconProps> = ({ url, network }) => {
     const { colorMode } = useColorMode()
+
+    const getNetworkColor = (network: string) => {
+      switch (network) {
+        case 'email':
+          return '#D44638';
+        case 'linkedin':
+          return '#0077B5';
+        case 'twitter':
+          return '#1DA1F2';
+        case 'github':
+          return '#181717';
+        default:
+          return colorMode === 'light' ? '#000000' : '#FFFFFF';
+      }
+    }
 
     return (
       <Box
@@ -194,13 +212,29 @@ export function PortfolioComponent() {
         <SocialIcon
           url={url}
           network={network}
-          bgColor={colorMode === 'light' ? undefined : 'white'}
-          fgColor={colorMode === 'light' ? undefined : 'black'}
+          bgColor={getNetworkColor(network)}
+          fgColor={colorMode === 'light' ? '#FFFFFF' : '#FFFFFF'}
           style={{ width: 40, height: 40 }}
+          target="_blank"
+          rel="noopener noreferrer"
         />
       </Box>
     )
   }
+
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      setMousePosition({ x: event.clientX, y: event.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   return (
     <Box minHeight="100vh" bg={colorMode === 'light' ? 'gray.50' : 'gray.900'}>
@@ -211,7 +245,7 @@ export function PortfolioComponent() {
             <Heading as="h1" size="lg" fontWeight="bold">Martin Tejeda</Heading>
             <Flex gap={2}>
               <Button
-                as={Link}
+                as="a"
                 href="/resume.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -348,10 +382,10 @@ export function PortfolioComponent() {
         <Box as="footer" py={8} bg={colorMode === 'light' ? 'gray.100' : 'gray.800'}>
           <Container maxW="container.xl">
             <Flex justify="center" gap={6} mb={4}>
-              <CustomSocialIcon url="mailto:your.email@example.com" network="email" />
-              <CustomSocialIcon url="https://linkedin.com/in/yourusername" network="linkedin" />
-              <CustomSocialIcon url="https://twitter.com/yourusername" network="twitter" />
-              <CustomSocialIcon url="https://github.com/yourusername" network="github" />
+              <CustomSocialIcon url="mailto:your.hi@martintejeda.com" network="email" />
+              <CustomSocialIcon url="https://linkedin.com/in/mawrs" network="linkedin" />
+              <CustomSocialIcon url="https://twitter.com/mawrs" network="twitter" />
+              <CustomSocialIcon url="https://github.com/mawrs" network="github" />
             </Flex>
             <VStack spacing={1} textAlign="center">
               <Text>&copy; 2024 Martin Tejeda</Text>
