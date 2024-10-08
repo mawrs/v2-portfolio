@@ -15,15 +15,12 @@ interface AbChatBodyProps {
   color: string;
 }
 
-// Extend HTMLElementTagNameMap with our custom element
-interface CustomElements extends HTMLElementTagNameMap {
-  'ab-chat-body': HTMLElement & AbChatBodyProps;
-}
-
-// Extend the global JSX namespace
-declare global {
+// Augment the JSX IntrinsicElements
+declare module 'react' {
   namespace JSX {
-    interface IntrinsicElements extends CustomElements {}
+    interface IntrinsicElements {
+      'ab-chat-body': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & AbChatBodyProps, HTMLElement>;
+    }
   }
 }
 
@@ -423,7 +420,6 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
               transition="opacity 0.05s"
             >
               <ab-chat-body
-                ref={chatBodyRef}
                 chatbotID={chatbotID}
                 theme={currentTheme}
                 color={userMessageColor}
