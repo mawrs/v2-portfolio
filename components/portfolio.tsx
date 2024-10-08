@@ -415,16 +415,16 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
               opacity={isChatVisible ? 1 : 0}
               transition="opacity 0.05s"
             >
-              <ab-chat-body
-                ref={(el: HTMLElement | null) => {
+              {React.createElement('ab-chat-body' as any, {
+                ref: (el: HTMLElement | null) => {
                   if (el) {
                     chatMethods.current = el as unknown as ChatElementMethods;
                   }
-                }}
-                chatbotID={chatbotID}
-                theme={currentTheme}
-                color={userMessageColor}
-              />
+                },
+                chatbotID: chatbotID,
+                theme: currentTheme,
+                color: userMessageColor
+              })}
             </Box>
             {/* Resize handle */}
             <Box
