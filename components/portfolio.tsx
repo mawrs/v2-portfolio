@@ -7,12 +7,10 @@ import { SocialIcon } from 'react-social-icons'
 import React from 'react'
 import { darken} from "@chakra-ui/theme-tools"
 
-// Add this at the top of your file or in a separate declarations file
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'ab-chat-body': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
-    }
+// Use module augmentation instead of the global namespace declaration
+declare module 'react' {
+  interface IntrinsicElements {
+    'ab-chat-body': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
   }
 }
 
@@ -39,6 +37,10 @@ interface ChatElementMethods {
   setNewConversation: () => void;
 }
 
+interface ChatBodyRefType {
+  setNewConversation?: () => void;
+}
+
 export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string, never>>((props, ref) => {
   const { colorMode, toggleColorMode } = useColorMode()
   const theme = useTheme()
@@ -51,7 +53,7 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
 
   const containerRef = useRef<HTMLDivElement>(null)
   const chatMethods = useRef<ChatElementMethods | null>(null);
-  const chatBodyRef = useRef<ChatElementMethods>(null);
+  const chatBodyRef = useRef<ChatBodyRefType>(null);
 
   const featuredProjects: ProjectType[] = [
     {
@@ -241,17 +243,14 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
   const [isChatVisible, setIsChatVisible] = useState(true);
 
   const resetChat = () => {
-    // Immediately hide the chat
     setIsChatVisible(false);
 
-    // Use setTimeout to delay the actual reset slightly
     setTimeout(() => {
-      if (chatBodyRef.current) {
-        (chatBodyRef.current as any).setNewConversation?.();
+      if (chatBodyRef.current && chatBodyRef.current.setNewConversation) {
+        chatBodyRef.current.setNewConversation();
       }
-      // Make the chat visible again
       setIsChatVisible(true);
-    }, 50); // 50ms delay, adjust if needed
+    }, 50);
   };
 
   useEffect(() => {
@@ -417,7 +416,7 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
               transition="opacity 0.05s"
             >
               <ab-chat-body
-                ref={(el: any) => {
+                ref={(el: HTMLElement | null) => {
                   if (el) {
                     chatMethods.current = el as unknown as ChatElementMethods;
                   }
