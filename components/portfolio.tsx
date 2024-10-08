@@ -1,21 +1,40 @@
 'use client'
 
-import { useState} from 'react'
-import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, Input, useColorMode, IconButton, Badge, Skeleton, Link } from "@chakra-ui/react"
-import { Send, Sun, Moon, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, useColorMode, IconButton, Badge, Link, useColorModeValue, useTheme } from "@chakra-ui/react"
+import { Sun, Moon, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import { SocialIcon } from 'react-social-icons'
+import { ChatElementMethods } from '@aidbase/chat';
+import React from 'react'
+import { darken} from "@chakra-ui/theme-tools"
+
+// Define the props interface for ab-chat-body
+interface AbChatBodyProps {
+  chatbotID: string;
+  theme: string;
+  color: string;
+}
+
+// Declare the ab-chat-body as a custom element
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'ab-chat-body': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & AbChatBodyProps, HTMLElement>;
+    }
+  }
+}
 
 interface ProjectType {
   title: string;
   description: string;
   image: string;
-  url?: string;
-  expanded?: {
+  url: string;
+  expanded: {
     role: string;
     team: string;
     challenges: string;
     outcome: string;
-  };
+  } | false;
 }
 
 interface CustomSocialIconProps {
@@ -23,23 +42,33 @@ interface CustomSocialIconProps {
   network: string;
 }
 
-export function PortfolioComponent() {
+export const PortfolioComponent = React.forwardRef<HTMLDivElement, {}>((props, ref) => {
   const { colorMode, toggleColorMode } = useColorMode()
-  const [chatMessages, setChatMessages] = useState([
-    { role: 'assistant', content: "Hi! I am Martin's AI assistant. How can I help you with design questions?" }
-  ])
-  const [userInput, setUserInput] = useState('')
+  const theme = useTheme()
+  const bgColor = useColorModeValue("white", "#1A202C") // Chakra UI's gray.900, which looks close to your dark navy
+  const textColor = useColorModeValue(theme.colors.gray[800], theme.colors.white)
+  const borderColor = useColorModeValue("gray.200", "gray.600")
+  const chatBubbleColor = useColorModeValue(theme.colors.gray[100], "rgba(255, 255, 255, 0.1)") // Slightly lighter than the background
+  const userMessageColor = useColorModeValue("#34C759", "#4CD964") // Light and dark mode colors
   const [expandedProject, setExpandedProject] = useState<number | null>(null)
-  const [isThinking, setIsThinking] = useState(false)
+  const [expandFull, setExpandFull] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [chatHeight, setChatHeight] = useState(700)
+  const resizeRef = useRef<HTMLDivElement>(null)
 
-  // Add a new state for artificial delay
-  const [artificialDelay, setArtificialDelay] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const chatMethods = useRef<ChatElementMethods>()
+  const chatBodyRef = useRef<ChatElementMethods>(null);
+
+  const chatBgColor = useColorModeValue(theme.colors.white, theme.colors.gray[800])
+  const messageBgColor = useColorModeValue(theme.colors.gray[100], theme.colors.gray[700])
 
   const featuredProjects: ProjectType[] = [
     {
       title: "Facebook Project",
       description: "Enhancing user connections on Facebook",
       image: "/facebook.png",
+      url: "https://example.com/project-link", // Add this line
       expanded: {
         role: "Product Designer",
         team: "Collaborated with UX Researchers, Product Managers, and a Product Design Manager",
@@ -51,6 +80,7 @@ export function PortfolioComponent() {
       title: "Square Project",
       description: "Enhancing email security through design standardization",
       image: "/square.png",
+      url: "https://example.com/project-link", // Add this line
       expanded: {
         role: "Product Designer",
         team: "Collaborated with UX Writers, Product Designers, UX Researchers, and a Product Design Manager",
@@ -62,6 +92,7 @@ export function PortfolioComponent() {
       title: "Slide Project",
       description: "Transforming Slide's claim process",
       image: "/slide.png",
+      url: "https://example.com/project-link", // Add this line
       expanded: {
         role: "Lead Designer",
         team: "Collaborated with cross-functional teams including UX researchers, product managers, developers, and stakeholders",
@@ -72,62 +103,14 @@ export function PortfolioComponent() {
   ]
 
   const sideProjects: ProjectType[] = [
-    { title: "Prepitch", description: "Personal project for pitch preparation", image: "/prepitch.png", url: "https://prepitch.example.com" },
-    { title: "New Careers", description: "Mobile app design for career transitions", image: "/newcareers.png", url: "https://newcareers.fyi" },
-    { title: "Audio Nexus", description: "Web app design for audio enthusiasts", image: "/audionexus.png", url: "https://audionexus.ai" },
+    { title: "Prepitch", description: "Personal project for pitch preparation", image: "/prepitch.png", url: "https://prepitch.xyz/", expanded: false },
+    { title: "New Careers", description: "Mobile app design for career transitions", image: "/newcareers.png", url: "https://newcareers.fyi", expanded: false },
+    { title: "Audio Nexus", description: "Web app design for audio enthusiasts", image: "/audionexus.png", url: "https://audionexus.ai", expanded: false },
   ]
-
-  const handleChatSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (userInput.trim() === '') return
-
-    const newMessages = [
-      ...chatMessages,
-      { role: 'user', content: userInput }
-    ]
-    setChatMessages(newMessages)
-    setUserInput('')
-    setIsThinking(true)
-
-    try {
-      const startTime = Date.now();
-
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query: userInput }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      // Calculate a random delay between 500ms and 1500ms
-      const randomDelay = Math.floor(Math.random() * (1500 - 500 + 1)) + 500;
-      const elapsedTime = Date.now() - startTime;
-      
-      if (elapsedTime < randomDelay) {
-        setArtificialDelay(true)
-        await new Promise(resolve => setTimeout(resolve, randomDelay - elapsedTime))
-        setArtificialDelay(false)
-      }
-
-      setChatMessages([...newMessages, { role: 'assistant', content: data.response }]);
-    } catch (error) {
-      console.error('Error querying AI:', error);
-      setChatMessages([...newMessages, { role: 'assistant', content: "I'm sorry, I couldn't process your request at the moment. Can you please try again?" }]);
-    } finally {
-      setIsThinking(false)
-    }
-  }
 
   const renderProjectCard = (project: ProjectType, index: number, projectType: 'featured' | 'side') => (
     <Card
-      key={index}
+      key={`${projectType}-${index}-${project.title}`}
       direction={{ base: 'column', sm: 'row' }}
       overflow='hidden'
       variant='outline'
@@ -222,21 +205,152 @@ export function PortfolioComponent() {
     )
   }
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const container = containerRef.current
+      const span = container?.querySelector('span')
+      const shadowRoot = span?.shadowRoot
+      const rootChild = shadowRoot?.firstChild as HTMLElement
+      const containerChild = rootChild?.firstChild as HTMLElement
+
+      if (containerChild?.scrollHeight > containerChild?.clientHeight) {
+        setExpandFull(true)
+        clearInterval(interval)
+      }
+    }, 100)
+
+    return () => clearInterval(interval)
+  }, [expandFull])
+
+  const clearChat = () => {
+    chatMethods.current?.setNewConversation();
+  };
+
+  const handleFAQClick = (question: string) => {
+    if (chatMethods.current) {
+      // Check if setInputValue exists on chatMethods.current
+      if ('setInputValue' in chatMethods.current) {
+        (chatMethods.current as any).setInputValue(question);
+      } else {
+        console.error('setInputValue method not found on chat reference');
+        
+        // Fallback: Try to find the input element within the chat component
+        const chatElement = document.querySelector('[data-testid="chat-widget"]');
+        const inputElement = chatElement?.querySelector('input[type="text"]') as HTMLInputElement | null;
+        
+        if (inputElement) {
+          inputElement.value = question;
+          inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+          inputElement.dispatchEvent(new Event('change', { bubbles: true }));
+          inputElement.focus();
+        } else {
+          console.error('Unable to find input element within chat widget');
+        }
+      }
+    }
+  }
+
+  // Add this function near your other useEffect hooks
+  useEffect(() => {
+    const chatContainer = document.querySelector('.chat-container');
+    if (chatContainer) {
+      const resizeObserver = new ResizeObserver(() => {
+        // Use type assertion to avoid TypeScript error
+        if (chatMethods.current && (chatMethods.current as any).scrollToBottom) {
+          (chatMethods.current as any).scrollToBottom();
+        } else {
+          // Fallback: manually scroll to bottom if method is not available
+          const chatContent = chatContainer.querySelector('.chat-content');
+          if (chatContent) {
+            chatContent.scrollTop = chatContent.scrollHeight;
+          }
+        }
+      });
+      resizeObserver.observe(chatContainer);
+      return () => resizeObserver.disconnect();
+    }
+  }, []);
+
+  const mainBgColor = useColorModeValue("white", "#1A202C")
+  
+  const footerBgColor = useColorModeValue(
+    darken("gray.100", 5)(theme),  // Slightly darker than gray.100 in light mode
+    darken("#1A202C", 5)(theme)  // Slightly darker than the main background in dark mode
+  )
+
+  const [isChatVisible, setIsChatVisible] = useState(true);
+
+  const resetChat = () => {
+    // Immediately hide the chat
+    setIsChatVisible(false);
+
+    // Use setTimeout to delay the actual reset slightly
+    setTimeout(() => {
+      if (chatBodyRef.current && chatBodyRef.current.setNewConversation) {
+        chatBodyRef.current.setNewConversation();
+      }
+      // Make the chat visible again
+      setIsChatVisible(true);
+    }, 50); // 50ms delay, adjust if needed
+  };
+
+  useEffect(() => {
+    // This ensures the chat element is only added on the client-side
+    const script = document.createElement('script')
+    script.src = 'https://client.aidbase.ai/chat.ab.js'
+    script.async = true
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
+    }
+  }, [])
+
+  useEffect(() => {
+    const resizeHandle = resizeRef.current
+    let startY: number
+    let startHeight: number
+
+    const onMouseDown = (e: MouseEvent) => {
+      startY = e.clientY
+      startHeight = chatHeight
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      const deltaY = e.clientY - startY
+      const newHeight = Math.max(300, startHeight + deltaY) // Minimum height of 300px
+      setChatHeight(newHeight)
+    }
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+
+    if (resizeHandle) {
+      resizeHandle.addEventListener('mousedown', onMouseDown)
+    }
+
+    return () => {
+      if (resizeHandle) {
+        resizeHandle.removeEventListener('mousedown', onMouseDown)
+      }
+    }
+  }, [chatHeight])
+
+  const chatbotID = process.env.NEXT_PUBLIC_CHATBOT_ID
+
   return (
-    <Box minHeight="100vh" bg={colorMode === 'light' ? 'gray.50' : 'gray.900'}>
+    <Flex ref={ref} direction="column" minHeight="100vh" bg={bgColor}>
       {/* Navigation */}
-      <Box as="nav" borderBottom="1px" borderColor={colorMode === 'light' ? 'gray.200' : 'gray.700'} position="sticky" top="0" zIndex="10" bg={colorMode === 'light' ? 'white' : 'gray.800'}>
+      <Box as="nav" borderBottom="1px" borderColor={colorMode === 'light' ? 'gray.200' : 'gray.700'} position="sticky" top="0" zIndex="10" bg={colorMode === 'light' ? 'gray.50' : 'gray.800'}>
         <Container maxW="container.xl" py={4}>
           <Flex justify="space-between" align="center">
             <Heading as="h1" size="lg" fontWeight="bold">Martin Tejeda</Heading>
             <Flex gap={2}>
-              <Button
-                as="a"
-                href="/resume.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                colorScheme="blue"
-              >
+              <Button as="a" href="/resume.pdf" target="_blank" colorScheme="blue">
                 Resume
               </Button>
               <IconButton
@@ -251,138 +365,164 @@ export function PortfolioComponent() {
         </Container>
       </Box>
 
-      <Container as="main" maxW="container.xl" py={8}>
-        {/* About Me */}
-        <VStack as="section" spacing={12} align="stretch" py={12}>
-          <Flex direction={["column", "row"]} align="stretch" gap={8}>
-            <Box width={["100%", "50%"]}>
-              <Box borderRadius="md" overflow="hidden">
-                <iframe
-                  width="100%"
-                  height="300px"
-                  src="https://www.youtube.com/embed/Eim7-Pb2eVg"
-                  title="Portfolio Creation Video"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+      {/* Main content */}
+      <Container as="main" maxW="container.xl" py={8} flex="1" display="flex" flexDirection="column">
+        <VStack spacing={12} align="stretch">
+          {/* About Me */}
+          <VStack as="section" spacing={12} align="stretch" py={12}>
+            <Flex direction={["column", "row"]} align="stretch" gap={8}>
+              <Box width={["100%", "50%"]}>
+                <Box borderRadius="md" overflow="hidden">
+                  <iframe
+                    width="100%"
+                    height="300px"
+                    src="https://www.youtube.com/embed/Eim7-Pb2eVg"
+                    title="Portfolio Creation Video"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                </Box>
+                <Flex justify="center" mt={2}>
+                  <Badge colorScheme="purple" fontSize="sm" p={2}>
+                    Watch how I made this portfolio with AI!
+                  </Badge>
+                </Flex>
               </Box>
-              <Flex justify="center" mt={2}>
-                <Badge colorScheme="purple" fontSize="sm" p={2}>
-                  Watch how I made this portfolio with AI!
-                </Badge>
-              </Flex>
-            </Box>
-            <Box width={["100%", "50%"]}>
-              <Heading as="h2" size="xl" mb={4}>About Me</Heading>
-              <Text mb={4}>
-                Hi, I am Martin Tejeda, a passionate product designer with over 5 years of experience in creating
-                user-centered digital products. I specialize in UX research, UI design, and usability testing.
-              </Text>
-              <Text>
-                My goal is to create intuitive and beautiful interfaces that solve real problems for users.
-                I am constantly learning and adapting to new technologies and design trends to deliver the best
-                possible solutions.
-              </Text>
-            </Box>
-          </Flex>
+              <Box width={["100%", "50%"]}>
+                <Heading as="h2" size="xl" mb={4}>About Me</Heading>
+                <Text mb={4}>
+                  Hi, I'm Martin Tejeda, a product designer and builder with a passion for creating user-centered digital products. As the Head of Design at MDSV Capital, I blend my design expertise with entrepreneurial acumen to craft innovative solutions that drive business growth.
+                </Text>
+                <Text>
+                  I leverage cutting-edge AI tools like V0, Cursor, and Replit to rapidly prototype and build functional products. From UX research and UI design to front-end development and Lean methodology integration, I'm constantly expanding my skill set to deliver intuitive, beautiful, and effective solutions that solve real user problems.
+                </Text>
+              </Box>
+            </Flex>
+          </VStack>
+
+          {/* Projects */}
+          <Box as="section" py={12}>
+            <Heading as="h2" size="xl" mb={8}>Projects</Heading>
+            <Tabs variant='enclosed'>
+              <TabList>
+                <Tab key="featured-tab">Featured Projects</Tab>
+                <Tab key="side-tab">Side Projects</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel key="featured-panel">
+                  <VStack spacing={8}>
+                    {featuredProjects.map((project, index) => (
+                      <React.Fragment key={`featured-${index}`}>
+                        {renderProjectCard(project, index, 'featured')}
+                      </React.Fragment>
+                    ))}
+                  </VStack>
+                </TabPanel>
+                <TabPanel key="side-panel">
+                  <VStack spacing={8}>
+                    {sideProjects.map((project, index) => (
+                      <React.Fragment key={`side-${index}`}>
+                        {renderProjectCard(project, index, 'side')}
+                      </React.Fragment>
+                    ))}
+                  </VStack>
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </Box>
         </VStack>
 
-        {/* Projects */}
-        <Box as="section" py={12}>
-          <Heading as="h2" size="xl" mb={8}>Projects</Heading>
-          <Tabs variant='enclosed'>
-            <TabList>
-              <Tab>Featured Projects</Tab>
-              <Tab>Side Projects</Tab>
-            </TabList>
-            <TabPanels>
-              <TabPanel>
-                <VStack spacing={8}>
-                  {featuredProjects.map((project, index) => renderProjectCard(project, index, 'featured'))}
-                </VStack>
-              </TabPanel>
-              <TabPanel>
-                <VStack spacing={8}>
-                  {sideProjects.map((project, index) => renderProjectCard(project, index, 'side'))}
-                </VStack>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </Box>
-
-        {/* AI Chatbot */}
-        <Box as="section" py={12}>
-          <Heading as="h2" size="xl" mb={8}>Chat with Martin AI</Heading>
-          <Card bg={colorMode === 'light' ? 'white' : 'gray.700'}>
-            <CardBody>
-              <VStack spacing={4} mb={4} height="300px" overflowY="auto">
-                {chatMessages.map((message, index) => (
-                  <Flex key={index} justify={message.role === 'user' ? 'flex-end' : 'flex-start'} width="100%">
-                    <Box 
-                      maxWidth="70%" 
-                      p={3} 
-                      borderRadius="lg"
-                      bg={message.role === 'user' ? 'blue.500' : (colorMode === 'light' ? 'gray.100' : 'gray.600')}
-                      color={message.role === 'user' ? 'white' : (colorMode === 'light' ? 'black' : 'white')}
-                    >
-                      <Text>{message.content}</Text>
-                    </Box>
-                  </Flex>
-                ))}
-                {(isThinking || artificialDelay) && (
-                  <Flex justify="flex-start" width="100%">
-                    <Skeleton 
-                      startColor={colorMode === 'light' ? 'gray.100' : 'gray.600'}
-                      endColor={colorMode === 'light' ? 'gray.400' : 'gray.300'}
-                      height="20px"
-                      width="70%"
-                      borderRadius="lg"
-                    >
-                      <Box p={3}>
-                        <Text>Thinking...</Text>
-                      </Box>
-                    </Skeleton>
-                  </Flex>
-                )}
-              </VStack>
-              <form onSubmit={handleChatSubmit}>
-                <Flex gap={2}>
-                  <Input
-                    type="text"
-                    placeholder="Ask a design question..."
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    bg={colorMode === 'light' ? 'white' : 'gray.700'}
-                  />
-                  <Button type="submit" leftIcon={<Send size={16} />} isLoading={isThinking || artificialDelay}>
-                    Send
-                  </Button>
-                </Flex>
-              </form>
-            </CardBody>
-          </Card>
-        </Box>
-
-        {/* Footer */}
-        <Box as="footer" py={8} bg={colorMode === 'light' ? 'gray.100' : 'gray.800'}>
-          <Container maxW="container.xl">
-            <Flex justify="center" gap={6} mb={4}>
-              <CustomSocialIcon url="mailto:your.hi@martintejeda.com" network="email" />
-              <CustomSocialIcon url="https://linkedin.com/in/mawrs" network="linkedin" />
-              <CustomSocialIcon url="https://twitter.com/mawrs" network="twitter" />
-              <CustomSocialIcon url="https://github.com/mawrs" network="github" />
-            </Flex>
-            <VStack spacing={1} textAlign="center">
-              <Text>&copy; 2024 Martin Tejeda</Text>
-              <Text>
-                Made with <Link href="https://v0.dev/chat" isExternal>V0</Link> + <Link href="https://www.cursor.com/" isExternal>Cursor</Link>. 
-                Styled with <Link href="https://v2.chakra-ui.com/" isExternal>Chakra UI</Link>.
-              </Text>
-            </VStack>
-          </Container>
+        {/* Chat section */}
+        <Box as="section" py={8}>
+          <Flex justify="space-between" align="center" mb={4}>
+            <Heading as="h2" size="xl">Martin AI</Heading>
+            <Button onClick={resetChat} colorScheme="blue">New Chat</Button>
+          </Flex>
+          <Box
+            borderWidth="1px"
+            borderRadius="lg"
+            overflow="hidden"
+            bg={bgColor}
+            boxShadow="md"
+            height={`${chatHeight}px`}
+            position="relative"
+          >
+            <Box 
+              height="100%" 
+              overflowY="auto" 
+              mb={0}
+              opacity={isChatVisible ? 1 : 0}
+              transition="opacity 0.05s"
+            >
+              {chatbotID ? (
+                <ab-chat-body
+                  ref={chatBodyRef}
+                  chatbotID={chatbotID}
+                  theme={useColorModeValue("light", "dark")}
+                  color={userMessageColor}
+                />
+              ) : (
+                <Text p={4}>Error: Missing chatbot ID</Text>
+              )}
+            </Box>
+            {/* Resize handle */}
+            <Box
+              ref={resizeRef}
+              position="absolute"
+              bottom="0"
+              left="0"
+              right="0"
+              height="10px"
+              cursor="ns-resize"
+              bg="transparent"
+              _hover={{ bg: useColorModeValue("rgba(0,0,0,0.05)", "rgba(255,255,255,0.05)") }}
+              _before={{
+                content: '""',
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '30px',
+                height: '4px',
+                borderRadius: '2px',
+                bg: useColorModeValue("gray.300", "gray.600")
+              }}
+            />
+          </Box>
         </Box>
       </Container>
-    </Box>
+
+      {/* Footer */}
+      <Box as="footer" py={8} bg={footerBgColor}>
+        <Container maxW="container.xl">
+          <Flex justify="center" gap={6} mb={4}>
+            {[
+              { url: "mailto:your.hi@martintejeda.com", network: "email" },
+              { url: "https://linkedin.com/in/mawrs", network: "linkedin" },
+              { url: "https://twitter.com/mawrs", network: "twitter" },
+              { url: "https://github.com/mawrs", network: "github" }
+            ].map((social, index) => (
+              <CustomSocialIcon key={`social-${social.network}-${index}`} url={social.url} network={social.network} />
+            ))}
+          </Flex>
+          <VStack spacing={1} textAlign="center">
+            <Text>&copy; 2024 Martin Tejeda</Text>
+            <Flex
+              direction={{ base: 'column', md: 'row' }}
+              align="center"
+              justify="center"
+              gap={{ base: 1, md: 2 }}
+            >
+              <Text>Made with <Link href="https://v0.dev/chat" isExternal>V0</Link> + <Link href="https://www.cursor.com/" isExternal>Cursor</Link>.</Text>
+              <Text display={{ base: 'none', md: 'inline' }}>&bull;</Text>
+              <Text>Styled with <Link href="https://v2.chakra-ui.com/" isExternal>Chakra UI</Link>.</Text>
+            </Flex>
+          </VStack>
+        </Container>
+      </Box>
+    </Flex>
   )
-}
+})
+
+PortfolioComponent.displayName = 'PortfolioComponent'
