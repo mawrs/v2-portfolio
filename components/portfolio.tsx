@@ -4,21 +4,15 @@ import { useState, useRef, useEffect } from 'react'
 import { Box, Button, Container, Flex, Heading, Image, Text, VStack, Tabs, TabList, Tab, TabPanels, TabPanel, Card, CardBody, CardFooter, Stack, useColorMode, IconButton, Badge, Link, useColorModeValue, useTheme } from "@chakra-ui/react"
 import { Sun, Moon, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import { SocialIcon } from 'react-social-icons'
-import { ChatElementMethods } from '@aidbase/chat';
 import React from 'react'
 import { darken} from "@chakra-ui/theme-tools"
 
-// Define the props interface for ab-chat-body
-interface AbChatBodyProps {
-  chatbotID: string;
-  theme: string;
-  color: string;
-}
-
-// Augment the IntrinsicElements interface
-declare module 'react' {
-  interface IntrinsicElements {
-    'ab-chat-body': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & AbChatBodyProps, HTMLElement>;
+// Add this at the top of your file or in a separate declarations file
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'ab-chat-body': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+    }
   }
 }
 
@@ -40,6 +34,11 @@ interface CustomSocialIconProps {
   network: string;
 }
 
+interface ChatElementMethods {
+  scrollToBottom?: () => void;
+  setNewConversation: () => void;
+}
+
 export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string, never>>((props, ref) => {
   const { colorMode, toggleColorMode } = useColorMode()
   const theme = useTheme()
@@ -51,7 +50,7 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
   const resizeRef = useRef<HTMLDivElement>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const chatMethods = useRef<ChatElementMethods>()
+  const chatMethods = useRef<ChatElementMethods | null>(null);
   const chatBodyRef = useRef<ChatElementMethods>(null);
 
   const featuredProjects: ProjectType[] = [
@@ -219,8 +218,8 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
     if (chatContainer) {
       const resizeObserver = new ResizeObserver(() => {
         // Use type assertion to avoid TypeScript error
-        if (chatMethods.current && (chatMethods.current as { scrollToBottom?: () => void }).scrollToBottom) {
-          (chatMethods.current as { scrollToBottom: () => void }).scrollToBottom();
+        if (chatMethods.current && typeof chatMethods.current.scrollToBottom === 'function') {
+          chatMethods.current.scrollToBottom();
         } else {
           // Fallback: manually scroll to bottom if method is not available
           const chatContent = chatContainer.querySelector('.chat-content');
@@ -247,8 +246,8 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
 
     // Use setTimeout to delay the actual reset slightly
     setTimeout(() => {
-      if (chatBodyRef.current && chatBodyRef.current.setNewConversation) {
-        chatBodyRef.current.setNewConversation();
+      if (chatBodyRef.current) {
+        (chatBodyRef.current as any).setNewConversation?.();
       }
       // Make the chat visible again
       setIsChatVisible(true);
@@ -418,6 +417,11 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
               transition="opacity 0.05s"
             >
               <ab-chat-body
+                ref={(el: any) => {
+                  if (el) {
+                    chatMethods.current = el as unknown as ChatElementMethods;
+                  }
+                }}
                 chatbotID={chatbotID}
                 theme={currentTheme}
                 color={userMessageColor}
