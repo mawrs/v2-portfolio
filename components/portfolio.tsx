@@ -15,12 +15,10 @@ interface AbChatBodyProps {
   color: string;
 }
 
-// Augment the JSX IntrinsicElements using module syntax
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'ab-chat-body': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & AbChatBodyProps, HTMLElement>;
-    }
+// Augment the IntrinsicElements interface
+declare module 'react' {
+  interface IntrinsicElements {
+    'ab-chat-body': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & AbChatBodyProps, HTMLElement>;
   }
 }
 
