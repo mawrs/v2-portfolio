@@ -15,11 +15,12 @@ interface AbChatBodyProps {
   color: string;
 }
 
-// Replace the namespace declaration with an interface
+// Extend HTMLElementTagNameMap with our custom element
 interface CustomElements extends HTMLElementTagNameMap {
   'ab-chat-body': HTMLElement & AbChatBodyProps;
 }
 
+// Extend the global JSX namespace
 declare global {
   namespace JSX {
     interface IntrinsicElements extends CustomElements {}
