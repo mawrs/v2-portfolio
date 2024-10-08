@@ -415,7 +415,7 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
               opacity={isChatVisible ? 1 : 0}
               transition="opacity 0.05s"
             >
-              {React.createElement('ab-chat-body' as any, {
+              {React.createElement('ab-chat-body', {
                 ref: (el: HTMLElement | null) => {
                   if (el) {
                     chatMethods.current = el as unknown as ChatElementMethods;
