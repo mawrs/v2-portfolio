@@ -15,12 +15,14 @@ interface AbChatBodyProps {
   color: string;
 }
 
-// Declare the ab-chat-body as a custom element
+// Replace the namespace declaration with an interface
+interface CustomElements extends HTMLElementTagNameMap {
+  'ab-chat-body': HTMLElement & AbChatBodyProps;
+}
+
 declare global {
   namespace JSX {
-    interface IntrinsicElements {
-      'ab-chat-body': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & AbChatBodyProps, HTMLElement>;
-    }
+    interface IntrinsicElements extends CustomElements {}
   }
 }
 
@@ -303,7 +305,8 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
     }
   }, [chatHeight])
 
-  const chatbotID = process.env.NEXT_PUBLIC_CHATBOT_ID
+  const chatbotID = process.env.NEXT_PUBLIC_CHATBOT_ID || ''
+  const currentTheme = useColorModeValue("light", "dark")
 
   return (
     <Flex ref={ref} direction="column" minHeight="100vh" bg={bgColor}>
@@ -418,16 +421,12 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
               opacity={isChatVisible ? 1 : 0}
               transition="opacity 0.05s"
             >
-              {chatbotID ? (
-                <ab-chat-body
-                  ref={chatBodyRef}
-                  chatbotID={chatbotID}
-                  theme={useColorModeValue("light", "dark")}
-                  color={userMessageColor}
-                />
-              ) : (
-                <Text p={4}>Error: Missing chatbot ID</Text>
-              )}
+              <ab-chat-body
+                ref={chatBodyRef}
+                chatbotID={chatbotID}
+                theme={currentTheme}
+                color={userMessageColor}
+              />
             </Box>
             {/* Resize handle */}
             <Box
