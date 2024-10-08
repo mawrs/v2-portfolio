@@ -42,26 +42,19 @@ interface CustomSocialIconProps {
   network: string;
 }
 
-export const PortfolioComponent = React.forwardRef<HTMLDivElement, {}>((props, ref) => {
+export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string, never>>((props, ref) => {
   const { colorMode, toggleColorMode } = useColorMode()
   const theme = useTheme()
   const bgColor = useColorModeValue("white", "#1A202C") // Chakra UI's gray.900, which looks close to your dark navy
-  const textColor = useColorModeValue(theme.colors.gray[800], theme.colors.white)
-  const borderColor = useColorModeValue("gray.200", "gray.600")
-  const chatBubbleColor = useColorModeValue(theme.colors.gray[100], "rgba(255, 255, 255, 0.1)") // Slightly lighter than the background
   const userMessageColor = useColorModeValue("#34C759", "#4CD964") // Light and dark mode colors
   const [expandedProject, setExpandedProject] = useState<number | null>(null)
   const [expandFull, setExpandFull] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const [chatHeight, setChatHeight] = useState(700)
   const resizeRef = useRef<HTMLDivElement>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const chatMethods = useRef<ChatElementMethods>()
   const chatBodyRef = useRef<ChatElementMethods>(null);
-
-  const chatBgColor = useColorModeValue(theme.colors.white, theme.colors.gray[800])
-  const messageBgColor = useColorModeValue(theme.colors.gray[100], theme.colors.gray[700])
 
   const featuredProjects: ProjectType[] = [
     {
@@ -222,42 +215,14 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, {}>((props, r
     return () => clearInterval(interval)
   }, [expandFull])
 
-  const clearChat = () => {
-    chatMethods.current?.setNewConversation();
-  };
-
-  const handleFAQClick = (question: string) => {
-    if (chatMethods.current) {
-      // Check if setInputValue exists on chatMethods.current
-      if ('setInputValue' in chatMethods.current) {
-        (chatMethods.current as any).setInputValue(question);
-      } else {
-        console.error('setInputValue method not found on chat reference');
-        
-        // Fallback: Try to find the input element within the chat component
-        const chatElement = document.querySelector('[data-testid="chat-widget"]');
-        const inputElement = chatElement?.querySelector('input[type="text"]') as HTMLInputElement | null;
-        
-        if (inputElement) {
-          inputElement.value = question;
-          inputElement.dispatchEvent(new Event('input', { bubbles: true }));
-          inputElement.dispatchEvent(new Event('change', { bubbles: true }));
-          inputElement.focus();
-        } else {
-          console.error('Unable to find input element within chat widget');
-        }
-      }
-    }
-  }
-
   // Add this function near your other useEffect hooks
   useEffect(() => {
     const chatContainer = document.querySelector('.chat-container');
     if (chatContainer) {
       const resizeObserver = new ResizeObserver(() => {
         // Use type assertion to avoid TypeScript error
-        if (chatMethods.current && (chatMethods.current as any).scrollToBottom) {
-          (chatMethods.current as any).scrollToBottom();
+        if (chatMethods.current && (chatMethods.current as { scrollToBottom?: () => void }).scrollToBottom) {
+          (chatMethods.current as { scrollToBottom: () => void }).scrollToBottom();
         } else {
           // Fallback: manually scroll to bottom if method is not available
           const chatContent = chatContainer.querySelector('.chat-content');
@@ -270,8 +235,6 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, {}>((props, r
       return () => resizeObserver.disconnect();
     }
   }, []);
-
-  const mainBgColor = useColorModeValue("white", "#1A202C")
   
   const footerBgColor = useColorModeValue(
     darken("gray.100", 5)(theme),  // Slightly darker than gray.100 in light mode
@@ -392,10 +355,10 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, {}>((props, r
               <Box width={["100%", "50%"]}>
                 <Heading as="h2" size="xl" mb={4}>About Me</Heading>
                 <Text mb={4}>
-                  Hi, I'm Martin Tejeda, a product designer and builder with a passion for creating user-centered digital products. As the Head of Design at MDSV Capital, I blend my design expertise with entrepreneurial acumen to craft innovative solutions that drive business growth.
+                  I&apos;m Martin Tejeda, a product designer and builder with a passion for creating user-centered digital products. As the Head of Design at MDSV Capital, I blend my design expertise with entrepreneurial acumen to craft innovative solutions that drive business growth.
                 </Text>
                 <Text>
-                  I leverage cutting-edge AI tools like V0, Cursor, and Replit to rapidly prototype and build functional products. From UX research and UI design to front-end development and Lean methodology integration, I'm constantly expanding my skill set to deliver intuitive, beautiful, and effective solutions that solve real user problems.
+                  I leverage cutting-edge AI tools like V0, Cursor, and Replit to rapidly prototype and build functional products. From UX research and UI design to front-end development and Lean methodology integration, I&apos;m constantly expanding my skill set to deliver intuitive, beautiful, and effective solutions that solve real user problems.
                 </Text>
               </Box>
             </Flex>
