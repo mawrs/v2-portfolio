@@ -302,6 +302,24 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
   const chatbotID = process.env.NEXT_PUBLIC_CHATBOT_ID || ''
   const currentTheme = useColorModeValue("light", "dark")
 
+  useEffect(() => {
+    // Add a check to ensure the message is only logged once
+    if (!window.hasLoggedConsoleMessage) {
+      console.log(`
+      &&     &&   &&&&&&&    &&         &&           &&&&&&&&
+      &&     &&   &&         &&         &&         &&        &&
+      &&     &&   &&         &&         &&         &&        &&
+      &&&&&&&&&   &&&&&      &&         &&         &&        &&
+      &&     &&   &&         &&         &&         &&        &&
+      &&     &&   &&         &&         &&         &&        &&
+      &&     &&   &&&&&&&&   &&&&&&&&   &&&&&&&&&    &&&&&&&&
+
+      Hi me up! hi@martintejeda.com
+      `);
+      window.hasLoggedConsoleMessage = true;
+    }
+  }, []);
+
   return (
     <Flex ref={ref} direction="column" minHeight="100vh" bg={bgColor}>
       {/* Navigation */}
@@ -418,7 +436,7 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
               {React.createElement('ab-chat-body', {
                 ref: (el: HTMLElement | null) => {
                   if (el) {
-                    chatMethods.current = el as unknown as ChatElementMethods;
+                    chatBodyRef.current = el as unknown as ChatBodyRefType;
                   }
                 },
                 chatbotID: chatbotID,
