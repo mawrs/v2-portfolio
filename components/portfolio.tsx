@@ -14,6 +14,12 @@ declare module 'react' {
   }
 }
 
+declare global {
+  interface Window {
+    hasLoggedConsoleMessage?: boolean;
+  }
+}
+
 interface ProjectType {
   title: string;
   description: string;
@@ -304,7 +310,7 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
 
   useEffect(() => {
     // Add a check to ensure the message is only logged once
-    if (!window.hasLoggedConsoleMessage) {
+    if (typeof window !== 'undefined' && !window.hasLoggedConsoleMessage) {
       console.log(`
       &&     &&   &&&&&&&    &&         &&           &&&&&&&&
       &&     &&   &&         &&         &&         &&        &&
