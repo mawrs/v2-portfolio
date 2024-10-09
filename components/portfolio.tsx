@@ -95,9 +95,9 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
   ]
 
   const sideProjects: ProjectType[] = [
-    { title: "Prepitch", description: "Personal project for pitch preparation", image: "/prepitch.png", url: "https://prepitch.xyz/", expanded: false },
-    { title: "New Careers", description: "Mobile app design for career transitions", image: "/newcareers.png", url: "https://newcareers.fyi", expanded: false },
-    { title: "Audio Nexus", description: "Web app design for audio enthusiasts", image: "/audionexus.png", url: "https://audionexus.ai", expanded: false },
+    { title: "Prepitch", description: "Pre-seed prep for early-stage founders", image: "/prepitch.png", url: "https://prepitch.xyz/", expanded: false },
+    { title: "New Careers", description: "New, modern, and alternative career paths for college students", image: "/newcareers.png", url: "https://newcareers.fyi", expanded: false },
+    { title: "Audio Nexus", description: "Audio Intelligence for call centers", image: "/audionexus.png", url: "https://audionexus.ai", expanded: false },
   ]
 
   const renderProjectCard = (project: ProjectType, index: number, projectType: 'featured' | 'side') => (
