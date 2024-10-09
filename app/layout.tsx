@@ -16,7 +16,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Martin Tejeda - Product Designer",
-  description: "Portfolio of Martin Tejeda, a passionate product designer with over 5 years of experience.",
+  description: "Portfolio of Martin Tejeda. Product designer & builder based in San Francisco.",
 };
 
 export default function RootLayout({
