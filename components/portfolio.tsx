@@ -43,7 +43,7 @@ interface ChatElementMethods {
   setNewConversation: () => void;
 }
 
-interface ChatBodyRefType {
+interface ChatBodyRefType extends HTMLElement {
   setNewConversation?: () => void;
 }
 
@@ -59,7 +59,7 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
 
   const containerRef = useRef<HTMLDivElement>(null)
   const chatMethods = useRef<ChatElementMethods | null>(null);
-  const chatBodyRef = useRef<ChatBodyRefType>(null);
+  const chatBodyRef = useRef<ChatBodyRefType | null>(null);
 
   const featuredProjects: ProjectType[] = [
     {
