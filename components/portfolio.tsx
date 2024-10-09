@@ -502,6 +502,7 @@ export const PortfolioComponent = React.forwardRef<HTMLDivElement, Record<string
               <Text display={{ base: 'none', md: 'inline' }}>&bull;</Text>
               <Text>Styled with <Link href="https://v2.chakra-ui.com/" isExternal>Chakra UI</Link>.</Text>
             </Flex>
+            <Text>AI knowledge stored in <Link href="https://www.aidbase.ai/" isExternal>Aidbase</Link>.</Text>
           </VStack>
         </Container>
       </Box>
